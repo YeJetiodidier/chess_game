@@ -1123,8 +1123,12 @@ _init_state()
 
 # First-run branded boot screen. It self-dismisses via CSS after the initial
 # render so it never blocks interaction and never returns on later reruns.
+# getattr keeps older cached deployments (where ui.boot_splash is missing)
+# working instead of crashing at import time.
 if not st.session_state.get("_boot_splash_shown"):
-    st.markdown(ui.boot_splash(), unsafe_allow_html=True)
+    splash = getattr(ui, "boot_splash", None)
+    if callable(splash):
+        st.markdown(splash(), unsafe_allow_html=True)
     st.session_state["_boot_splash_shown"] = True
 
 if not st.session_state.authenticated:
