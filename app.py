@@ -24,6 +24,18 @@ from components.board import API_BASE, render_interactive_board
 from components.styles import THEME_CSS
 from config import get_secret
 
+_st_markdown = st.markdown
+
+
+def _markdown(body, *args, **kwargs):
+    if kwargs.get("unsafe_allow_html") and not args:
+        kwargs.pop("unsafe_allow_html", None)
+        return st.html(body, **kwargs)
+    return _st_markdown(body, *args, **kwargs)
+
+
+st.markdown = _markdown
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -412,7 +424,8 @@ def _auth_page():
                     if not identity or not password:
                         st.error("Enter your username (or email) and password.")
                     else:
-                        user = db.verify_user(identity, password)
+                        with st.spinner("Checking your credentials…"):
+                            user = db.verify_user(identity, password)
                         if user:
                             _sign_in(user)
                         else:
@@ -464,11 +477,13 @@ def _auth_page():
                     elif new_password != confirm_password:
                         st.error("Passwords do not match.")
                     else:
-                        ok, message = db.create_user(username, email, new_password)
+                        with st.spinner("Creating your account…"):
+                            ok, message = db.create_user(username, email, new_password)
                         if not ok:
                             st.error(message)
                         else:
-                            user = db.verify_user(username, new_password)
+                            with st.spinner("Setting up your profile…"):
+                                user = db.verify_user(username, new_password)
                             if user:
                                 _sign_in(user)
                             else:
@@ -983,7 +998,8 @@ def _profile():
         if uploaded is not None:
             st.image(uploaded, width=110)
             if st.button("Save avatar", type="primary", key="save_avatar"):
-                url, error = storage.upload_avatar(uid, uploaded.getvalue())
+                with st.spinner("Uploading your avatar…"):
+                    url, error = storage.upload_avatar(uid, uploaded.getvalue())
                 if url:
                     old = user.get("avatar_url")
                     db.update_profile(uid, avatar_url=url)
@@ -1098,12 +1114,18 @@ st.set_page_config(
     page_title="Neural Chess",
     page_icon="♟",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 db.init_db()
 st.markdown(THEME_CSS, unsafe_allow_html=True)
 _init_state()
+
+# First-run branded boot screen. It self-dismisses via CSS after the initial
+# render so it never blocks interaction and never returns on later reruns.
+if not st.session_state.get("_boot_splash_shown"):
+    st.markdown(ui.boot_splash(), unsafe_allow_html=True)
+    st.session_state["_boot_splash_shown"] = True
 
 if not st.session_state.authenticated:
     _auth_page()

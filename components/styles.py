@@ -523,6 +523,61 @@ THEME_CSS = """
     .tiny { font-size: 0.72rem; }
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
+    /* ------------------------------------------------------- Loading states */
+    .nc-splash {
+        position: fixed; inset: 0; z-index: 2147483000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 14px; padding: 24px; text-align: center; pointer-events: none;
+        background:
+            radial-gradient(circle at 50% 34%, rgba(216, 180, 90, 0.16), transparent 58%),
+            linear-gradient(160deg, #171614 0%, #0F0E0C 100%);
+        animation: ncSplashOut 2.6s ease forwards;
+    }
+    .nc-splash-emblem {
+        position: relative; width: 82px; height: 82px;
+        display: grid; place-items: center; border-radius: 50%;
+        background: radial-gradient(circle at 50% 40%, rgba(232, 200, 124, 0.22), transparent 68%);
+        color: var(--gold-bright);
+    }
+    .nc-splash-emblem::before {
+        content: ""; position: absolute; inset: 0; border-radius: 50%;
+        border: 2px solid rgba(216, 180, 90, 0.18); border-top-color: var(--gold);
+        animation: ncSpin 1s linear infinite;
+    }
+    .nc-splash-emblem svg { width: 40px; height: 40px; }
+    .nc-splash-title {
+        font-family: 'Sora', 'Inter', sans-serif;
+        font-size: 1.05rem; font-weight: 800;
+        letter-spacing: 0.18em; text-transform: uppercase; color: var(--text);
+    }
+    .nc-splash-sub { font-size: 0.78rem; color: var(--muted); }
+    .nc-splash-bar {
+        position: relative; width: min(240px, 62vw); height: 4px;
+        border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.08);
+    }
+    .nc-splash-bar::after {
+        content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 45%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, transparent, var(--gold-bright), var(--gold), transparent);
+        animation: ncSplashSlide 1.15s ease-in-out infinite;
+    }
+
+    @keyframes ncSpin { to { transform: rotate(360deg); } }
+    @keyframes ncSplashSlide { 0% { left: -45%; } 100% { left: 100%; } }
+    @keyframes ncSplashOut {
+        0%, 72% { opacity: 1; visibility: visible; }
+        100% { opacity: 0; visibility: hidden; }
+    }
+
+    /* Brand Streamlit's built-in running indicator */
+    .stSpinner > div { border-top-color: var(--gold) !important; }
+    [data-testid="stStatusWidget"] { color: var(--muted) !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .nc-splash { display: none; }
+        .nc-splash-emblem::before, .nc-splash-bar::after { animation: none; }
+    }
+
     @media (max-width: 980px) {
         .block-container { padding: 1rem 1rem 3rem 1rem !important; }
         .hero { padding: 26px 22px; }
@@ -532,6 +587,35 @@ THEME_CSS = """
         .auth-points { display: none; }
         .challenge-row { grid-template-columns: 34px 1fr auto; }
         .challenge-side { display: none; }
+    }
+
+    @media (max-width: 640px) {
+        .block-container {
+            padding: calc(0.7rem + env(safe-area-inset-top))
+                calc(0.7rem + env(safe-area-inset-right)) 2rem
+                calc(0.7rem + env(safe-area-inset-left)) !important;
+        }
+        .hero { padding: 22px 18px; border-radius: 18px; }
+        .hero-title { font-size: 1.55rem; }
+        .hero-sub { font-size: 0.88rem; margin-top: 9px; }
+        .auth-hero { min-height: 0; padding: 24px 18px; border-radius: 18px; }
+        .auth-hero-title { font-size: 1.75rem; }
+        .auth-card-title { font-size: 1.35rem; }
+        .auth-card-sub { font-size: 0.8rem; }
+        .page-top .title { font-size: 1.4rem; }
+        .page-top .sub { font-size: 0.8rem; }
+        .stat-card { min-height: 88px; padding: 12px 14px; }
+        .stat-value { font-size: 1.45rem; }
+        .board-caption { padding: 10px 12px; }
+        .board-caption .label { font-size: 0.64rem; }
+        .board-caption .value { font-size: 0.78rem; }
+        .board-wrap { border-radius: 14px; }
+        [data-testid="stSidebar"] { width: min(86vw, 340px) !important; }
+        [data-testid="stSidebarUserContent"] { padding: 1rem 0.8rem 1.5rem !important; }
+        [data-testid="stMain"] div[role="radiogroup"] > label {
+            padding: 7px 12px !important;
+            font-size: 0.78rem !important;
+        }
     }
 </style>
 """

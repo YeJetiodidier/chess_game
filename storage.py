@@ -15,6 +15,9 @@ from PIL import Image, UnidentifiedImageError
 from config import get_secret
 
 BLOB_TOKEN = get_secret("BLOB_READ_WRITE_TOKEN").strip()
+BLOB_ACCESS = get_secret("BLOB_ACCESS", "private").strip().lower()
+if BLOB_ACCESS not in ("public", "private"):
+    BLOB_ACCESS = "private"
 BLOB_ENDPOINT = "https://blob.vercel-storage.com"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOCAL_UPLOAD_DIR = os.path.join(BASE_DIR, "uploads", "avatars")
@@ -41,6 +44,22 @@ def local_path(url: str):
     if os.path.isabs(path):
         return path
     return os.path.join(BASE_DIR, path)
+
+
+def fetch_remote(url: str):
+    """Return bytes for a stored Blob URL, including private stores."""
+    if not BLOB_TOKEN or not is_remote(url):
+        return None
+    try:
+        response = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {BLOB_TOKEN}"},
+            timeout=20,
+        )
+        response.raise_for_status()
+        return response.content
+    except Exception:
+        return None
 
 
 def _normalise_image(data: bytes) -> bytes:
@@ -84,7 +103,7 @@ def upload_avatar(user_id: int, data: bytes):
                     "Authorization": f"Bearer {BLOB_TOKEN}",
                     "x-content-type": "image/webp",
                     "x-add-random-suffix": "1",
-                    "x-access": "public",
+                    "x-vercel-blob-access": BLOB_ACCESS,
                     "x-cache-control-max-age": "31536000",
                 },
                 timeout=30,

@@ -35,10 +35,9 @@ def crown_svg(size: int = 22) -> str:
     )
 
 
-@lru_cache(maxsize=128)
-def _local_avatar_uri(path: str, mtime: float, size: int):
+def _avatar_uri_from_bytes(data: bytes, size: int):
     try:
-        with Image.open(path) as img:
+        with Image.open(io.BytesIO(data)) as img:
             img.load()
             img = img.convert("RGBA")
             img.thumbnail((size * 2, size * 2), Image.LANCZOS)
@@ -50,10 +49,25 @@ def _local_avatar_uri(path: str, mtime: float, size: int):
         return None
 
 
+@lru_cache(maxsize=128)
+def _local_avatar_uri(path: str, mtime: float, size: int):
+    try:
+        with open(path, "rb") as handle:
+            return _avatar_uri_from_bytes(handle.read(), size)
+    except Exception:
+        return None
+
+
+@lru_cache(maxsize=128)
+def _remote_avatar_uri(url: str, size: int):
+    data = storage.fetch_remote(url)
+    return _avatar_uri_from_bytes(data, size) if data else None
+
+
 def avatar_src(username: str, avatar_url: str, size: int = 44):
     if avatar_url:
         if storage.is_remote(avatar_url):
-            return avatar_url
+            return _remote_avatar_uri(avatar_url, size)
         path = storage.local_path(avatar_url)
         if path and os.path.isfile(path):
             return _local_avatar_uri(path, os.path.getmtime(path), size)
@@ -71,6 +85,17 @@ def avatar_html(username: str, avatar_url: str = None, size: int = 44, extra_cla
         f'<div class="{classes}" style="width:{size}px;height:{size}px;'
         f'font-size:{max(11, int(size * 0.34))}px">{inner}</div>'
     )
+
+
+def boot_splash(label: str = "Preparing the arena…") -> str:
+    return f"""
+    <div class="nc-splash" role="status" aria-live="polite" aria-label="Loading Neural Chess">
+        <div class="nc-splash-emblem">{crown_svg(40)}</div>
+        <div class="nc-splash-title">Neural Chess</div>
+        <div class="nc-splash-sub">{esc(label)}</div>
+        <div class="nc-splash-bar" aria-hidden="true"></div>
+    </div>
+    """
 
 
 def brand_html(tagline: str = "Play. Learn. Dominate.") -> str:

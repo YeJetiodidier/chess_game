@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#141311">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Neural Chess">
+  <meta name="format-detection" content="telephone=no">
   <title>Neural Chess</title>
+  <script>if (window.self !== window.top) document.documentElement.classList.add('embedded');</script>
   <style>
     :root {
       --bg-primary: #141311;
@@ -39,8 +47,15 @@
         linear-gradient(180deg, #191815 0%, #141311 55%, #0F0E0C 100%);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html.embedded body {
+      min-height: 0;
     }
 
     header {
@@ -101,6 +116,12 @@
       border-radius: 50%;
       background: var(--success);
       box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-pill.is-loading .status-dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: loaderBreathe 1.2s ease-in-out infinite;
     }
 
     main {
@@ -176,6 +197,93 @@
       border-radius: 10px;
       overflow: hidden;
       background: var(--board-dark);
+    }
+
+    /* Board loading screen */
+    .board-loader {
+      position: absolute;
+      inset: 0;
+      z-index: 45;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      padding: 24px;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 34%, rgba(216, 180, 90, 0.16), transparent 62%),
+        linear-gradient(160deg, #1B1916 0%, #121110 100%);
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .board-loader.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-emblem {
+      position: relative;
+      width: 74px;
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 40%, rgba(232, 200, 124, 0.22), transparent 68%);
+    }
+
+    .loader-emblem::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(216, 180, 90, 0.18);
+      border-top-color: var(--accent);
+      animation: loaderSpin 1s linear infinite;
+    }
+
+    .loader-piece {
+      font-size: 2rem;
+      line-height: 1;
+      color: var(--accent);
+      animation: loaderBreathe 1.6s ease-in-out infinite;
+    }
+
+    .loader-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .loader-sub {
+      max-width: 260px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .loader-bar {
+      position: relative;
+      width: min(220px, 60%);
+      height: 4px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .loader-bar::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -45%;
+      width: 45%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, var(--accent-hover), var(--accent), transparent);
+      animation: loaderSlide 1.15s ease-in-out infinite;
     }
 
     .chessboard {
@@ -393,6 +501,79 @@
       transition: width 0.35s ease;
     }
 
+    /* Prediction loading skeleton */
+    .pred-loading {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .pred-loading-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .mini-spinner {
+      flex: 0 0 auto;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2px solid rgba(216, 180, 90, 0.22);
+      border-top-color: var(--accent);
+      animation: loaderSpin 0.8s linear infinite;
+    }
+
+    .pred-skeleton {
+      position: relative;
+      height: 38px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-surface-elevated);
+    }
+
+    .pred-skeleton::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(244, 239, 228, 0.07), transparent);
+      animation: shimmer 1.2s infinite;
+    }
+
+    @keyframes loaderSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes loaderBreathe {
+      0%, 100% { opacity: 0.65; transform: scale(0.96); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    @keyframes loaderSlide {
+      0% { left: -45%; }
+      100% { left: 100%; }
+    }
+
+    @keyframes shimmer {
+      100% { transform: translateX(100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .loader-emblem::before,
+      .loader-piece,
+      .loader-bar::after,
+      .mini-spinner,
+      .pred-skeleton::after,
+      .status-pill.is-loading .status-dot {
+        animation: none;
+      }
+    }
+
     /* Move history */
     .history-box {
       max-height: 140px;
@@ -570,19 +751,245 @@
       z-index: 10;
     }
 
+    .mobile-nav {
+      display: none;
+    }
+
     @media (max-width: 960px) {
       main {
         flex-direction: column;
         align-items: center;
+        justify-content: flex-start;
       }
       .sidebar {
         width: 520px;
         max-width: 90vw;
       }
     }
+
+    @media (max-width: 760px) {
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        padding: calc(8px + env(safe-area-inset-top))
+          calc(12px + env(safe-area-inset-right)) 8px
+          calc(12px + env(safe-area-inset-left));
+      }
+
+      .logo-area {
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .logo-badge {
+        width: 30px;
+        height: 30px;
+        font-size: 17px;
+        border-radius: 7px;
+      }
+
+      .logo-title {
+        font-size: 0.95rem;
+        white-space: nowrap;
+      }
+
+      .logo-subtitle {
+        display: none;
+      }
+
+      .status-pill {
+        max-width: 44vw;
+        padding: 4px 9px;
+        font-size: 0.7rem;
+      }
+
+      #backend-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      main {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        max-width: none;
+        min-height: 0;
+        padding: 10px calc(10px + env(safe-area-inset-right))
+          calc(78px + env(safe-area-inset-bottom))
+          calc(10px + env(safe-area-inset-left));
+      }
+
+      .board-container {
+        width: 100%;
+        gap: 8px;
+      }
+
+      .player-banner {
+        width: 100%;
+        max-width: none;
+        padding: 7px 10px;
+        border-radius: 10px;
+      }
+
+      .player-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+      }
+
+      .player-name {
+        font-size: 0.84rem;
+      }
+
+      .captured-pieces {
+        min-height: 18px;
+        font-size: 14px;
+      }
+
+      .board-wrapper {
+        width: 100%;
+        height: auto;
+        max-width: none;
+        max-height: none;
+        aspect-ratio: 1 / 1;
+        border-radius: 12px;
+      }
+
+      .loader-emblem {
+        width: 60px;
+        height: 60px;
+      }
+
+      .loader-piece {
+        font-size: 1.6rem;
+      }
+
+      .loader-title {
+        font-size: 0.9rem;
+      }
+
+      .loader-sub {
+        font-size: 0.72rem;
+      }
+
+      .coord-rank,
+      .coord-file {
+        font-size: 9px;
+      }
+
+      .square.legal-target::after {
+        width: 24%;
+        height: 24%;
+      }
+
+      .piece {
+        width: 92%;
+        height: 92%;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-width: none;
+        gap: 10px;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .card-header {
+        margin-bottom: 10px;
+      }
+
+      .btn {
+        min-height: 44px;
+        padding: 10px 12px;
+      }
+
+      .btn-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .history-box {
+        max-height: 42vh;
+        font-size: 0.82rem;
+      }
+
+      .mobile-nav {
+        position: fixed;
+        left: calc(8px + env(safe-area-inset-left));
+        right: calc(8px + env(safe-area-inset-right));
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 60;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 5px;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        background: rgba(30, 29, 26, 0.94);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.58);
+        backdrop-filter: blur(18px);
+      }
+
+      .mobile-nav button {
+        min-height: 52px;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        touch-action: manipulation;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+
+      .mobile-nav button svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .mobile-nav button.is-active {
+        background: var(--accent-glow);
+        color: var(--accent-hover);
+      }
+
+      body[data-mobile-view="board"] .sidebar {
+        display: none;
+      }
+
+      body:not([data-mobile-view="coach"]) .coach-panel {
+        display: none;
+      }
+
+      body:not([data-mobile-view="history"]) .history-panel {
+        display: none;
+      }
+
+      body[data-mobile-view="coach"] .board-container,
+      body[data-mobile-view="history"] .board-container {
+        display: none;
+      }
+    }
   </style>
 </head>
-<body>
+<body data-mobile-view="board">
 
   <header>
     <div class="logo-area">
@@ -592,9 +999,9 @@
         <div class="logo-subtitle">Adaptive ResNet arena</div>
       </div>
     </div>
-    <div class="status-pill" id="backend-status">
+    <div class="status-pill is-loading" id="backend-status">
       <div class="status-dot" id="backend-dot"></div>
-      <span id="backend-text">Client Engine Ready</span>
+      <span id="backend-text">Warming up…</span>
     </div>
   </header>
 
@@ -615,6 +1022,15 @@
       <div class="board-wrapper">
         <canvas id="arrow-canvas" width="520" height="520"></canvas>
         <div class="chessboard" id="board"></div>
+
+        <div class="board-loader" id="board-loader" role="status" aria-live="polite" aria-label="Preparing the chessboard">
+          <div class="loader-emblem">
+            <span class="loader-piece" aria-hidden="true">&#9822;</span>
+          </div>
+          <div class="loader-title">Neural Chess</div>
+          <div class="loader-sub" id="board-loader-text">Warming up the engine and setting the board…</div>
+          <div class="loader-bar" aria-hidden="true"></div>
+        </div>
 
         <div class="modal-overlay" id="promotion-modal">
           <div class="promotion-dialog" id="promo-options"></div>
@@ -646,7 +1062,7 @@
     <div class="sidebar">
 
       <!-- Player Profiles Card -->
-      <div class="card">
+      <div class="card coach-panel">
         <div class="card-header">
           <div class="card-title">
             <span class="card-title-icon">🧠</span>
@@ -671,7 +1087,7 @@
       </div>
 
       <!-- Prediction Card -->
-      <div class="card">
+      <div class="card coach-panel">
         <div class="card-header">
           <div class="card-title">
             <span class="card-title-icon">⚡</span>
@@ -702,7 +1118,7 @@
       </div>
 
       <!-- Controls & History Card -->
-      <div class="card">
+      <div class="card history-panel">
         <div class="card-header">
           <div class="card-title">
             <span class="card-title-icon">📜</span>
@@ -731,6 +1147,31 @@
 
     </div>
   </main>
+
+  <nav class="mobile-nav" aria-label="Game panels">
+    <button type="button" data-view="board" class="is-active" aria-pressed="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+      </svg>
+      <span>Board</span>
+    </button>
+    <button type="button" data-view="coach" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-12H12l1-8z"></path>
+      </svg>
+      <span>Analysis</span>
+    </button>
+    <button type="button" data-view="history" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h10"></path>
+        <circle cx="19" cy="18" r="2.5"></circle>
+      </svg>
+      <span>History</span>
+    </button>
+  </nav>
 
   <script>
     // Runtime configuration injected by components/board.py when embedded in
@@ -1753,8 +2194,62 @@
       histBox.scrollTop = histBox.scrollHeight;
     }
 
+    // Loading states -------------------------------------------------------
+    let predictionRequestId = 0;
+
+    function hideBoardLoader() {
+      const loader = document.getElementById('board-loader');
+      if (loader) loader.classList.add('is-hidden');
+    }
+
+    function setBackendLoading(loading, text) {
+      const pill = document.getElementById('backend-status');
+      const label = document.getElementById('backend-text');
+      if (pill) pill.classList.toggle('is-loading', !!loading);
+      if (text && label) label.textContent = text;
+    }
+
+    function renderPredictionLoading() {
+      const container = document.getElementById('prediction-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="pred-loading" role="status" aria-live="polite">
+          <div class="pred-loading-label"><span class="mini-spinner"></span>Consulting the neural engine…</div>
+          <div class="pred-skeleton"></div>
+          <div class="pred-skeleton" style="opacity:.8"></div>
+          <div class="pred-skeleton" style="opacity:.6"></div>
+        </div>
+      `;
+    }
+
     // Move Prediction Engine (Communicates with local server if active, or offline heuristic model)
     async function calculatePredictions() {
+      const requestId = ++predictionRequestId;
+      const container = document.getElementById('prediction-container');
+
+      // Show a skeleton immediately on an empty panel, otherwise only if the
+      // request is slow enough that the user would notice the delay.
+      let loadingTimer = null;
+      if (container && container.children.length === 0) {
+        renderPredictionLoading();
+        setBackendLoading(true, 'Thinking…');
+      } else {
+        loadingTimer = setTimeout(() => {
+          if (requestId !== predictionRequestId) return;
+          renderPredictionLoading();
+          setBackendLoading(true, 'Thinking…');
+        }, 140);
+      }
+
+      try {
+        return await runPredictionModel();
+      } finally {
+        if (loadingTimer) clearTimeout(loadingTimer);
+        if (requestId === predictionRequestId) setBackendLoading(false);
+      }
+    }
+
+    async function runPredictionModel() {
       const fen = game.toFen();
       const legalMoves = game.getLegalMoves();
       const container = document.getElementById('prediction-container');
@@ -1765,12 +2260,16 @@
         return [];
       }
 
-      // Try fetching from server.py (adaptive per-player model)
+      // Try fetching from server.py (adaptive per-player model). Abort after a
+      // short timeout so a cold or unreachable server falls back cleanly.
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const fetchTimeout = controller ? setTimeout(() => controller.abort(), 4500) : null;
       try {
         const res = await fetch(`${API_BASE}/api/predict`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fen: fen, player: currentPlayerName() })
+          body: JSON.stringify({ fen: fen, player: currentPlayerName() }),
+          signal: controller ? controller.signal : undefined
         });
         if (res.ok) {
           const data = await res.json();
@@ -1792,6 +2291,8 @@
       } catch (err) {
         serverAvailable = false;
         // Fallback to offline positional scoring heuristic
+      } finally {
+        if (fetchTimeout) clearTimeout(fetchTimeout);
       }
 
       // Standalone Heuristic Predictor (matches opening & midgame master weights)
@@ -1993,12 +2494,56 @@
       });
     });
 
+    const mobileViewButtons = [...document.querySelectorAll('.mobile-nav button')];
+
+    function syncFrameHeight() {
+      if (window.self === window.top) return;
+      const height = Math.ceil(document.body.getBoundingClientRect().height);
+      if (height) {
+        window.parent.postMessage(
+          { isStreamlitMessage: true, type: 'streamlit:setFrameHeight', height },
+          '*'
+        );
+      }
+    }
+
+    function setMobileView(view) {
+      document.body.dataset.mobileView = view;
+      mobileViewButtons.forEach((button) => {
+        const active = button.dataset.view === view;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      if (window.matchMedia('(max-width: 760px)').matches) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      requestAnimationFrame(syncFrameHeight);
+    }
+
+    mobileViewButtons.forEach((button) => {
+      button.addEventListener('click', () => setMobileView(button.dataset.view));
+    });
+
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(() => syncFrameHeight()).observe(document.body);
+    }
+    window.addEventListener('resize', syncFrameHeight, { passive: true });
+    window.addEventListener('orientationchange', syncFrameHeight, { passive: true });
+
     // Initial render
     loadProfiles();
     loadAiPrefs();
     applyConfig();
     refreshProfileList();
     renderBoard();
+    setTimeout(syncFrameHeight, 80);
+
+    // Reveal the board once the first frame is painted. A safety timeout makes
+    // sure the loading screen can never trap the interface.
+    requestAnimationFrame(() => {
+      setTimeout(hideBoardLoader, 350);
+    });
+    setTimeout(hideBoardLoader, 8000);
   </script>
 </body>
 </html>
