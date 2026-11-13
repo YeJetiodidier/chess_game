@@ -154,35 +154,55 @@ def _init_state():
     st.session_state.setdefault("user", None)
     st.session_state.setdefault("nav", "Lobby")
     st.session_state.setdefault("nav_history", [])
+    st.session_state.setdefault("_last_nav", st.session_state.get("nav", "Lobby"))
     st.session_state.setdefault("board_cfg", None)
     st.session_state.setdefault("ai_started", False)
     st.session_state.setdefault("online_started", False)
     st.session_state.setdefault("local_started", False)
 
 
+def _set_nav(page: str):
+    """Set the current page and remember it so history is not double-counted."""
+    st.session_state.nav = page
+    st.session_state["_last_nav"] = page
+
+
+def _push_history(previous: str):
+    history = st.session_state.setdefault("nav_history", [])
+    if previous and (not history or history[-1] != previous):
+        history.append(previous)
+    # keep a short, sane history
+    st.session_state.nav_history = history[-20:]
+
+
 def _go(page: str):
     current = st.session_state.get("nav", "Lobby")
     if page and page != current:
-        history = st.session_state.setdefault("nav_history", [])
-        history.append(current)
-        # keep a short, sane history
-        st.session_state.nav_history = history[-20:]
-    st.session_state.nav = page
+        _push_history(current)
+    _set_nav(page)
 
 
 def _go_back():
     history = st.session_state.get("nav_history") or []
-    if history:
-        st.session_state.nav = history.pop()
-        st.session_state.nav_history = history
-    else:
-        st.session_state.nav = "Lobby"
+    target = history.pop() if history else "Lobby"
+    st.session_state.nav_history = history
+    _set_nav(target)
+
+
+def _sync_nav_history():
+    """Record navigation that bypasses _go, such as the sidebar radio."""
+    current = st.session_state.get("nav", "Lobby")
+    last = st.session_state.get("_last_nav", current)
+    if current != last:
+        _push_history(last)
+        st.session_state["_last_nav"] = current
 
 
 def _sign_out():
     st.session_state.authenticated = False
     st.session_state.user = None
-    st.session_state.nav = "Lobby"
+    _set_nav("Lobby")
+    st.session_state.nav_history = []
     st.session_state.board_cfg = None
     for key in ("ai_started", "online_started", "local_started", "tournament_joined"):
         st.session_state.pop(key, None)
@@ -192,7 +212,7 @@ def _sign_out():
 def _sign_in(user):
     st.session_state.authenticated = True
     st.session_state.user = user
-    st.session_state.nav = "Lobby"
+    _set_nav("Lobby")
     st.session_state.nav_history = []
     st.session_state.board_cfg = None
     st.rerun()
@@ -309,8 +329,12 @@ def _sidebar():
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Sign out", use_container_width=True, key="side_sign_out"):
-            _sign_out()
+        st.button(
+            "Sign out",
+            use_container_width=True,
+            key="side_sign_out",
+            on_click=_sign_out,
+        )
 
 
 def _page_top(eyebrow: str, title: str, sub: str = "", action_label: str = None, action_page: str = None, key: str = None):
@@ -529,6 +553,7 @@ def _auth_page():
 # Lobby
 # ---------------------------------------------------------------------------
 def _lobby():
+    _back_bar()
     user = st.session_state.get("user") or {}
     uid = _user_id()
     stats = db.get_user_stats(uid) if uid else {"games": 0, "wins": 0, "losses": 0, "draws": 0, "win_rate": 0}
@@ -658,6 +683,7 @@ def _lobby():
 # Tournaments
 # ---------------------------------------------------------------------------
 def _tournaments():
+    _back_bar()
     _page_top("Compete", "Tournaments", "Arena and Swiss events for every time control.")
     joined = st.session_state.get("tournament_joined")
     if joined:
@@ -706,6 +732,7 @@ def _start_online():
 
 
 def _play_online():
+    _back_bar()
     _page_top("Play Online", "Play someone at your level", "Matched against the neural ladder in seconds.")
     cfg = st.session_state.get("board_cfg") or {}
     if st.session_state.get("online_started") and cfg.get("mode") == "online":
@@ -789,6 +816,7 @@ def _start_local():
 
 
 def _play_friend():
+    _back_bar()
     _page_top("Play a Friend", "Two players, one board", "Pass the device and play a relaxed local game.")
     cfg = st.session_state.get("board_cfg") or {}
     if st.session_state.get("local_started") and cfg.get("mode") == "local":
@@ -843,6 +871,7 @@ def _start_ai():
 
 
 def _vs_computer():
+    _back_bar()
     _page_top("vs Computer", "Train against the neural engine", "Choose a side and a temperament. The board does the rest.")
     cfg = st.session_state.get("board_cfg") or {}
     if st.session_state.get("ai_started") and cfg.get("mode") == "ai":
@@ -892,6 +921,7 @@ def _vs_computer():
 # Puzzles
 # ---------------------------------------------------------------------------
 def _puzzles():
+    _back_bar()
     _page_top("Solve Puzzles", "Find the right move", "Short positions with one clean finish.")
     titles = [f'{puzzle["title"]} · {puzzle["rating"]}' for puzzle in PUZZLES]
     choice = st.selectbox("Puzzle", titles, key="puzzle_choice")
@@ -939,6 +969,7 @@ def _puzzles():
 # Lessons
 # ---------------------------------------------------------------------------
 def _lessons():
+    _back_bar()
     _page_top("Lesson", "Improve yourself", "Ten focused minutes is enough to move the needle.")
     for lesson in LESSONS:
         with st.expander(f'{lesson["title"]} · {lesson["duration"]}'):
@@ -951,6 +982,7 @@ def _lessons():
 # Leaderboard
 # ---------------------------------------------------------------------------
 def _leaderboard():
+    _back_bar()
     _page_top("Arena", "Leaderboard", "The sharpest players on the Neural Chess ladder.")
     rows = db.get_leaderboard(25)
     uid = _user_id()
@@ -976,6 +1008,7 @@ def _leaderboard():
 # Profile
 # ---------------------------------------------------------------------------
 def _profile():
+    _back_bar()
     user = st.session_state.get("user") or {}
     uid = _user_id()
     _page_top("Account", "Your profile", "A record of the games you have played and the player you are becoming.")
@@ -985,8 +1018,12 @@ def _profile():
             ui.empty_state("You are browsing as a guest", "Create an account to save games, upload an avatar, and join the leaderboard."),
             unsafe_allow_html=True,
         )
-        if st.button("Create an account", type="primary", key="guest_create_account"):
-            _sign_out()
+        st.button(
+            "Create an account",
+            type="primary",
+            key="guest_create_account",
+            on_click=_sign_out,
+        )
         return
 
     stats = db.get_user_stats(uid)
@@ -997,7 +1034,7 @@ def _profile():
             <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
                 {ui.avatar_html(user.get("username"), user.get("avatar_url"), 82)}
                 <div>
-                    <div class="hero-kicker">Member since {ui.esc(_fmt_date(user.get("created_at")))}</div>
+                    <div class="hero-kicker">Member since {ui.esc(_fmt_date(user.get("created_at")))} · {ui.esc(user.get("email") or "No email on file")}</div>
                     <div class="hero-title" style="font-size:2rem">{ui.esc(user.get("username"))}</div>
                     <div class="hero-sub" style="margin-top:6px">{ui.esc(user.get("bio") or "No bio yet. Tell the arena who you are.")}</div>
                 </div>
@@ -1043,6 +1080,15 @@ def _profile():
 
     with right:
         st.markdown('<div class="section-head"><div class="section-kicker">Profile</div><div class="section-title">About you</div></div>', unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div class="side-card" style="margin-bottom:14px">
+                <div class="statusline"><span class="status-dot gold"></span>Email</div>
+                <div class="muted tiny" style="margin-top:6px; word-break:break-word">{ui.esc(user.get("email") or "Not set")}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         with st.form("bio_form"):
             bio = st.text_area("Bio", value=user.get("bio") or "", max_chars=280, key="bio_text")
             save_bio = st.form_submit_button("Save profile", type="primary", use_container_width=True)
@@ -1083,6 +1129,7 @@ def _profile():
 # Settings
 # ---------------------------------------------------------------------------
 def _settings():
+    _back_bar()
     _page_top("System", "Settings", "Connection, storage, and account controls.")
     user = st.session_state.get("user") or {}
     model_path = os.path.join(BASE_DIR, "model.pt")
@@ -1132,8 +1179,12 @@ def _settings():
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Sign out", use_container_width=True, key="settings_sign_out"):
-            _sign_out()
+        st.button(
+            "Sign out",
+            use_container_width=True,
+            key="settings_sign_out",
+            on_click=_sign_out,
+        )
         st.caption("Streamlit sessions are per browser tab. Signing out clears this session.")
 
 
@@ -1153,9 +1204,9 @@ _init_state()
 
 # First-run branded boot screen. It self-dismisses via CSS after the initial
 # render so it never blocks interaction and never returns on later reruns.
-# getattr/reload keeps older cached deployments (where ui.boot_splash is
-# missing) working instead of crashing or requiring a manual reboot.
-if not st.session_state.get("_boot_splash_shown"):
+# A cached deployment can pair a new app.py with a stale components/ui.py, so
+# reload the module once and fall back to inline markup if boot_splash is gone.
+def _boot_splash_html():
     splash = getattr(ui, "boot_splash", None)
     if not callable(splash):
         try:
@@ -1166,7 +1217,20 @@ if not st.session_state.get("_boot_splash_shown"):
         except Exception:
             splash = None
     if callable(splash):
-        st.markdown(splash(), unsafe_allow_html=True)
+        try:
+            return splash()
+        except Exception:
+            pass
+    return (
+        '<div class="nc-splash" role="status" aria-live="polite">'
+        '<div class="nc-splash-title">Neural Chess</div>'
+        '<div class="nc-splash-sub">Preparing the arena...</div>'
+        "</div>"
+    )
+
+
+if not st.session_state.get("_boot_splash_shown"):
+    st.markdown(_boot_splash_html(), unsafe_allow_html=True)
     st.session_state["_boot_splash_shown"] = True
 
 if not st.session_state.authenticated:
@@ -1175,6 +1239,7 @@ if not st.session_state.authenticated:
 
 _refresh_user()
 _sidebar()
+_sync_nav_history()
 
 page = st.session_state.get("nav", "Lobby")
 if page not in NAV_PAGES:

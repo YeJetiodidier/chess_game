@@ -135,6 +135,7 @@ def init_db():
                 """
             )
             for column, ddl in (
+                ("email", "ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(160)"),
                 ("avatar_url", "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT"),
                 ("bio", "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT"),
                 ("last_seen", "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
@@ -184,6 +185,8 @@ def init_db():
                 """
             )
             user_cols = _columns(cur, "users")
+            if "email" not in user_cols:
+                cur.execute("ALTER TABLE users ADD COLUMN email TEXT")
             if "avatar_url" not in user_cols:
                 cur.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
             if "bio" not in user_cols:
@@ -269,8 +272,11 @@ def create_user(username, email, password):
                 (username, email, hash_password(password)),
             )
         return True, "Account created successfully!"
-    except Exception:
-        return False, "Username or email already exists."
+    except Exception as exc:
+        text = str(exc).lower()
+        if "unique" in text or "duplicate" in text or "integrity" in type(exc).__name__.lower():
+            return False, "Username or email already exists."
+        return False, "Could not create the account. Please try again."
 
 
 def verify_user(username_or_email, password):
