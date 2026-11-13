@@ -1,0 +1,9 @@
+python-chess
+zstandard
+numpy
+torch
+tqdm
+streamlit
+psycopg2-binary
+requests
+pillow
