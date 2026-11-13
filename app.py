@@ -153,6 +153,7 @@ def _init_state():
     st.session_state.setdefault("authenticated", False)
     st.session_state.setdefault("user", None)
     st.session_state.setdefault("nav", "Lobby")
+    st.session_state.setdefault("nav_history", [])
     st.session_state.setdefault("board_cfg", None)
     st.session_state.setdefault("ai_started", False)
     st.session_state.setdefault("online_started", False)
@@ -160,7 +161,22 @@ def _init_state():
 
 
 def _go(page: str):
+    current = st.session_state.get("nav", "Lobby")
+    if page and page != current:
+        history = st.session_state.setdefault("nav_history", [])
+        history.append(current)
+        # keep a short, sane history
+        st.session_state.nav_history = history[-20:]
     st.session_state.nav = page
+
+
+def _go_back():
+    history = st.session_state.get("nav_history") or []
+    if history:
+        st.session_state.nav = history.pop()
+        st.session_state.nav_history = history
+    else:
+        st.session_state.nav = "Lobby"
 
 
 def _sign_out():
@@ -177,6 +193,7 @@ def _sign_in(user):
     st.session_state.authenticated = True
     st.session_state.user = user
     st.session_state.nav = "Lobby"
+    st.session_state.nav_history = []
     st.session_state.board_cfg = None
     st.rerun()
 
@@ -187,6 +204,7 @@ def _refresh_user():
         return
     fresh = db.get_user(user["id"])
     if fresh:
+        # preserve credentials already loaded (e.g. email) if the lookup omits them
         st.session_state.user = {**user, **fresh}
     else:
         _sign_out()
@@ -320,6 +338,18 @@ def _page_top(eyebrow: str, title: str, sub: str = "", action_label: str = None,
                 on_click=_go,
                 args=(action_page,),
             )
+
+
+def _back_bar():
+    history = st.session_state.get("nav_history") or []
+    if not history:
+        return
+    prev = history[-1]
+    st.button(
+        f"← Back to {prev}",
+        key=f"back_{st.session_state.get('nav', 'page')}",
+        on_click=_go_back,
+    )
 
 
 def _render_board(cfg):
@@ -1123,10 +1153,18 @@ _init_state()
 
 # First-run branded boot screen. It self-dismisses via CSS after the initial
 # render so it never blocks interaction and never returns on later reruns.
-# getattr keeps older cached deployments (where ui.boot_splash is missing)
-# working instead of crashing at import time.
+# getattr/reload keeps older cached deployments (where ui.boot_splash is
+# missing) working instead of crashing or requiring a manual reboot.
 if not st.session_state.get("_boot_splash_shown"):
     splash = getattr(ui, "boot_splash", None)
+    if not callable(splash):
+        try:
+            import importlib
+
+            importlib.reload(ui)
+            splash = getattr(ui, "boot_splash", None)
+        except Exception:
+            splash = None
     if callable(splash):
         st.markdown(splash(), unsafe_allow_html=True)
     st.session_state["_boot_splash_shown"] = True
