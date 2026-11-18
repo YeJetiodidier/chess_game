@@ -41,16 +41,18 @@ START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 NAV_PAGES = [
     "Lobby",
-    "Tournaments",
+    "vs Computer",
     "Play Online",
     "Play a Friend",
     "Puzzles",
-    "vs Computer",
     "Lessons",
+    "Tournaments",
     "Leaderboard",
     "Profile",
     "Settings",
 ]
+
+STATIC_PAGES = ["Play a Friend", "Puzzles", "Lessons", "Tournaments"]
 
 DEMO_TOURNAMENTS = [
     {
@@ -301,6 +303,19 @@ def _sidebar():
             label_visibility="collapsed",
         )
 
+        st.markdown('<div class="side-label">Static · works offline</div>', unsafe_allow_html=True)
+        p1, p2 = st.columns(2)
+        static_keys = {
+            "Play a Friend": "static_friend",
+            "Puzzles": "static_puzzles",
+            "Lessons": "static_lessons",
+            "Tournaments": "static_tournaments",
+        }
+        for column, page in zip((p1, p2, p1, p2), STATIC_PAGES):
+            with column:
+                st.button(page, key=static_keys[page], use_container_width=True,
+                          on_click=_go, args=(page,))
+
         st.markdown('<div class="side-label">Account</div>', unsafe_allow_html=True)
         meta = f"{int(user.get('elo') or 1200)} Elo" if user.get("id") else "Guest mode"
         st.markdown(
@@ -365,6 +380,14 @@ def _page_top(eyebrow: str, title: str, sub: str = "", action_label: str = None,
 
 
 def _back_bar():
+    current = st.session_state.get("nav", "Lobby")
+    if current != "Lobby":
+        st.button(
+            "← Dashboard",
+            key="back_to_dashboard",
+            on_click=_go,
+            args=("Lobby",),
+        )
     history = st.session_state.get("nav_history") or []
     if not history:
         return
@@ -436,7 +459,7 @@ def _auth_page():
                     </div>
                     <div class="auth-point">
                         <div class="auth-point-icon">&#9822;</div>
-                        <div><b>Live analysis</b><div class="muted tiny">Top predictions on every position.</div></div>
+                        <div><b>Engine hints</b><div class="muted tiny">Three best-move reveals per game.</div></div>
                     </div>
                     <div class="auth-point">
                         <div class="auth-point-icon">&#9819;</div>
@@ -650,33 +673,42 @@ def _lobby():
             args=("Profile",),
         )
 
-    st.markdown('<div class="section-head"><div class="section-kicker">Improve</div><div class="section-title">Keep the edge</div></div>', unsafe_allow_html=True)
-    f1, f2, f3 = st.columns(3)
-    features = [
-        (f1, "Tournaments", "Compete on a schedule.", "Arena and Swiss events.", "Tournaments", "lobby_tournaments"),
-        (f2, "Solve Puzzles", "Find the right move.", "Short tactical tests.", "Puzzles", "lobby_puzzles"),
-        (f3, "Lesson", "Improve yourself.", "10 minutes at a time.", "Lessons", "lobby_lessons"),
+    st.markdown(
+        ui.section_header(
+            "Static features",
+            "Offline practice",
+            "No engine prediction or rated game needed — available even when the API is down.",
+        ),
+        unsafe_allow_html=True,
+    )
+    static_features = [
+        ("Play a Friend", "Local two-player game.", "Both sides on this device.", "Play a Friend", "lobby_friend"),
+        ("Solve Puzzles", "Find the right move.", "Short tactical tests.", "Puzzles", "lobby_puzzles"),
+        ("Lessons", "Improve yourself.", "10 minutes at a time.", "Lessons", "lobby_lessons"),
+        ("Tournaments", "Compete on a schedule.", "Arena and Swiss events.", "Tournaments", "lobby_tournaments"),
     ]
-    for column, title, text, meta, page, key in features:
-        with column:
-            st.markdown(
-                f"""
-                <div class="feature-card">
-                    <div class="feature-kicker">{ui.esc(page)}</div>
-                    <div class="feature-title">{ui.esc(title)}</div>
-                    <div class="feature-text">{ui.esc(text)}</div>
-                    <div class="feature-meta">{ui.esc(meta)}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            st.button(
-                f"Open {page}",
-                use_container_width=True,
-                key=key,
-                on_click=_go,
-                args=(page,),
-            )
+    for offset in range(0, len(static_features), 2):
+        f1, f2 = st.columns(2)
+        for column, (title, text, meta, page, key) in zip((f1, f2), static_features[offset:offset + 2]):
+            with column:
+                st.markdown(
+                    f"""
+                    <div class="feature-card">
+                        <div class="feature-kicker">{ui.esc(page)}</div>
+                        <div class="feature-title">{ui.esc(title)}</div>
+                        <div class="feature-text">{ui.esc(text)}</div>
+                        <div class="feature-meta">{ui.esc(meta)}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.button(
+                    f"Open {page}",
+                    use_container_width=True,
+                    key=key,
+                    on_click=_go,
+                    args=(page,),
+                )
 
 
 # ---------------------------------------------------------------------------

@@ -589,6 +589,49 @@ THEME_CSS = """
         .challenge-side { display: none; }
     }
 
+    @media (max-width: 760px) {
+        [data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.65rem !important;
+        }
+        [data-testid="stColumn"] {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+        .block-container {
+            padding: calc(0.8rem + env(safe-area-inset-top))
+                calc(0.8rem + env(safe-area-inset-right)) 2.2rem
+                calc(0.8rem + env(safe-area-inset-left)) !important;
+        }
+        .stButton > button,
+        [data-testid="stFormSubmitButton"] > button,
+        [data-testid="stLinkButton"] > a {
+            min-height: 44px !important;
+            width: 100% !important;
+        }
+        .feature-card, .side-card, .stat-card, .challenge-row {
+            width: 100% !important;
+        }
+        .feature-card { padding: 14px !important; }
+        .stat-card { min-height: 78px; }
+        iframe { max-width: 100% !important; }
+        [data-testid="stDataFrame"],
+        [data-testid="stTable"] {
+            max-width: 100% !important;
+            overflow-x: auto !important;
+        }
+        .stMarkdown table { display: block; overflow-x: auto; }
+        .page-top { gap: 8px; }
+        .hero-title { font-size: 1.7rem; }
+        .auth-hero-title { font-size: 1.9rem; }
+        .section-title { font-size: 1.1rem !important; }
+        [data-testid="stSidebar"] [data-testid="stButton"] > button {
+            min-height: 42px !important;
+        }
+    }
+
     @media (max-width: 640px) {
         .block-container {
             padding: calc(0.7rem + env(safe-area-inset-top))

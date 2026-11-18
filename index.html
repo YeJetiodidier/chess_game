@@ -1,5 +1,7 @@
+r
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -301,6 +303,7 @@
       justify-content: center;
       font-size: 0;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     .square.light {
@@ -344,7 +347,8 @@
       pointer-events: none;
     }
 
-    .coord-rank, .coord-file {
+    .coord-rank,
+    .coord-file {
       position: absolute;
       font-size: 10px;
       font-weight: 700;
@@ -362,11 +366,13 @@
       right: 4px;
     }
 
-    .square.light .coord-rank, .square.light .coord-file {
+    .square.light .coord-rank,
+    .square.light .coord-file {
       color: var(--board-dark);
     }
 
-    .square.dark .coord-rank, .square.dark .coord-file {
+    .square.dark .coord-rank,
+    .square.dark .coord-file {
       color: var(--board-light);
     }
 
@@ -376,6 +382,7 @@
       cursor: grab;
       transition: transform 0.08s ease;
       pointer-events: auto;
+      touch-action: manipulation;
     }
 
     .piece:active {
@@ -546,24 +553,43 @@
     }
 
     @keyframes loaderSpin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes loaderBreathe {
-      0%, 100% { opacity: 0.65; transform: scale(0.96); }
-      50% { opacity: 1; transform: scale(1.04); }
+
+      0%,
+      100% {
+        opacity: 0.65;
+        transform: scale(0.96);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.04);
+      }
     }
 
     @keyframes loaderSlide {
-      0% { left: -45%; }
-      100% { left: 100%; }
+      0% {
+        left: -45%;
+      }
+
+      100% {
+        left: 100%;
+      }
     }
 
     @keyframes shimmer {
-      100% { transform: translateX(100%); }
+      100% {
+        transform: translateX(100%);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
+
       .loader-emblem::before,
       .loader-piece,
       .loader-bar::after,
@@ -644,6 +670,18 @@
     .btn-block {
       width: 100%;
       margin-top: 8px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .hint-note {
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
     }
 
     /* FEN Input Area */
@@ -761,6 +799,7 @@
         align-items: center;
         justify-content: flex-start;
       }
+
       .sidebar {
         width: 520px;
         max-width: 90vw;
@@ -772,9 +811,7 @@
         position: sticky;
         top: 0;
         z-index: 40;
-        padding: calc(8px + env(safe-area-inset-top))
-          calc(12px + env(safe-area-inset-right)) 8px
-          calc(12px + env(safe-area-inset-left));
+        padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
       }
 
       .logo-area {
@@ -816,9 +853,7 @@
         gap: 10px;
         max-width: none;
         min-height: 0;
-        padding: 10px calc(10px + env(safe-area-inset-right))
-          calc(78px + env(safe-area-inset-bottom))
-          calc(10px + env(safe-area-inset-left));
+        padding: 10px calc(10px + env(safe-area-inset-right)) calc(78px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
       }
 
       .board-container {
@@ -989,6 +1024,7 @@
     }
   </style>
 </head>
+
 <body data-mobile-view="board">
 
   <header>
@@ -1023,7 +1059,8 @@
         <canvas id="arrow-canvas" width="520" height="520"></canvas>
         <div class="chessboard" id="board"></div>
 
-        <div class="board-loader" id="board-loader" role="status" aria-live="polite" aria-label="Preparing the chessboard">
+        <div class="board-loader" id="board-loader" role="status" aria-live="polite"
+          aria-label="Preparing the chessboard">
           <div class="loader-emblem">
             <span class="loader-piece" aria-hidden="true">&#9822;</span>
           </div>
@@ -1073,11 +1110,13 @@
         <div style="display:flex; gap:8px;">
           <div style="flex:1">
             <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:4px">White</div>
-            <input type="text" class="fen-input" id="white-player" list="profile-list" spellcheck="false" value="Guest White">
+            <input type="text" class="fen-input" id="white-player" list="profile-list" spellcheck="false"
+              value="Guest White">
           </div>
           <div style="flex:1">
             <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:4px">Black</div>
-            <input type="text" class="fen-input" id="black-player" list="profile-list" spellcheck="false" value="Guest Black">
+            <input type="text" class="fen-input" id="black-player" list="profile-list" spellcheck="false"
+              value="Guest Black">
           </div>
         </div>
         <datalist id="profile-list"></datalist>
@@ -1086,29 +1125,30 @@
         </div>
       </div>
 
-      <!-- Prediction Card -->
+      <!-- Engine Hints Card -->
       <div class="card coach-panel">
         <div class="card-header">
           <div class="card-title">
-            <span class="card-title-icon">⚡</span>
-            <span>AI Move Predictions</span>
+            <span class="card-title-icon">💡</span>
+            <span>Engine Hints</span>
           </div>
-          <span style="font-size:0.75rem; color:var(--text-muted)" id="pred-perspective">White's Turn</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)" id="hints-left">3 left</span>
         </div>
 
-        <div class="prediction-list" id="prediction-container">
-          <!-- Dynamically populated -->
-        </div>
+        <div class="prediction-list" id="prediction-container"></div>
 
-        <button class="btn btn-primary btn-block" id="btn-play-ai" style="margin-top:14px">
-          🤖 Play Top Predicted Move
+        <button class="btn btn-primary btn-block" id="btn-hint" style="margin-top:14px">
+          💡 Reveal best moves (3 left)
         </button>
+        <div class="hint-note" id="hint-note">The engine predicts silently. You get 3 hints per game.</div>
 
         <div style="display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
-          <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+          <label
+            style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
             <input type="checkbox" id="ai-auto"> AI auto-play
           </label>
-          <select id="ai-side" style="background:#12110F; color:var(--text-main); border:1px solid var(--border-color); border-radius:8px; padding:6px 8px; font-size:0.8rem;">
+          <select id="ai-side"
+            style="background:#12110F; color:var(--text-main); border:1px solid var(--border-color); border-radius:8px; padding:6px 8px; font-size:0.8rem;">
             <option value="b">AI is Black</option>
             <option value="w">AI is White</option>
             <option value="both">AI plays both</option>
@@ -1479,20 +1519,20 @@
             // Castling
             if (us === 'w' && sq === 60) {
               if (this.castling.includes('K') && !this.board[61] && !this.board[62] &&
-                  !this.isSquareAttacked(60, 'b') && !this.isSquareAttacked(61, 'b') && !this.isSquareAttacked(62, 'b')) {
+                !this.isSquareAttacked(60, 'b') && !this.isSquareAttacked(61, 'b') && !this.isSquareAttacked(62, 'b')) {
                 moves.push({ from: 60, to: 62, isCastle: true });
               }
               if (this.castling.includes('Q') && !this.board[59] && !this.board[58] && !this.board[57] &&
-                  !this.isSquareAttacked(60, 'b') && !this.isSquareAttacked(59, 'b') && !this.isSquareAttacked(58, 'b')) {
+                !this.isSquareAttacked(60, 'b') && !this.isSquareAttacked(59, 'b') && !this.isSquareAttacked(58, 'b')) {
                 moves.push({ from: 60, to: 58, isCastle: true });
               }
             } else if (us === 'b' && sq === 4) {
               if (this.castling.includes('k') && !this.board[5] && !this.board[6] &&
-                  !this.isSquareAttacked(4, 'w') && !this.isSquareAttacked(5, 'w') && !this.isSquareAttacked(6, 'w')) {
+                !this.isSquareAttacked(4, 'w') && !this.isSquareAttacked(5, 'w') && !this.isSquareAttacked(6, 'w')) {
                 moves.push({ from: 4, to: 6, isCastle: true });
               }
               if (this.castling.includes('q') && !this.board[3] && !this.board[2] && !this.board[1] &&
-                  !this.isSquareAttacked(4, 'w') && !this.isSquareAttacked(3, 'w') && !this.isSquareAttacked(2, 'w')) {
+                !this.isSquareAttacked(4, 'w') && !this.isSquareAttacked(3, 'w') && !this.isSquareAttacked(2, 'w')) {
                 moves.push({ from: 4, to: 2, isCastle: true });
               }
             }
@@ -1640,6 +1680,10 @@
     // ---- Online per-player learning -------------------------------------
     const DEFAULT_WHITE = 'Guest White';
     const DEFAULT_BLACK = 'Guest Black';
+    const HINTS_PER_GAME = 3;
+    let hintsLeft = HINTS_PER_GAME;
+    let hintActive = false;
+    let hintPending = false;
     let serverAvailable = false;
     let resultReported = false;
     let gamePersisted = false;
@@ -1653,6 +1697,12 @@
       const el = document.getElementById(color === 'w' ? 'white-player' : 'black-player');
       const value = (el && el.value ? el.value : '').trim();
       return value || (color === 'w' ? DEFAULT_WHITE : DEFAULT_BLACK);
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
     }
 
     function currentPlayerName() {
@@ -1701,7 +1751,7 @@
         return;
       }
       box.innerHTML =
-        `<b style="color:var(--text-main)">${stats.name}</b> · ${stats.moves || 0} moves<br>` +
+        `<b style="color:var(--text-main)">${escapeHtml(stats.name)}</b> · ${stats.moves || 0} moves<br>` +
         `${stats.games || 0} games (${stats.wins || 0}W / ${stats.losses || 0}L / ${stats.draws || 0}D) · ` +
         `${stats.updates || 0} learning updates`;
     }
@@ -1775,7 +1825,6 @@
       const result = winner === 'draw'
         ? 'draw'
         : ((winner === 'white' ? 'w' : 'b') === userColor ? 'win' : 'loss');
-      gamePersisted = true;
       try {
         await postJson('/api/game', {
           gameId,
@@ -1789,7 +1838,11 @@
           opponent: CHESS_CONFIG.opponentName || 'Neural AI',
           userColor
         });
-      } catch (e) { /* server offline */ }
+        gamePersisted = true;
+      } catch (e) {
+        const sub = document.getElementById('result-sub');
+        if (sub) sub.textContent += ' · Game not saved (API unreachable).';
+      }
     }
 
     async function reportResultIfNeeded() {
@@ -1813,11 +1866,42 @@
       refreshProfileList();
     }
 
+    function updateHintControls() {
+      const btn = document.getElementById('btn-hint');
+      const count = document.getElementById('hints-left');
+      const note = document.getElementById('hint-note');
+      if (count) count.textContent = `${hintsLeft} left`;
+      if (btn) {
+        btn.disabled = hintPending || hintsLeft <= 0 || aiIsTurn() || game.getLegalMoves().length === 0;
+        btn.textContent = hintsLeft > 0
+          ? `💡 Reveal best moves (${hintsLeft} left)`
+          : '💡 No hints left';
+      }
+      if (note) {
+        note.textContent = hintsLeft <= 0
+          ? 'No hints left this game.'
+          : hintActive
+            ? 'Pick a revealed move or play your own.'
+            : 'The engine predicts silently. You get 3 hints per game.';
+      }
+    }
+
+    function clearRevealedHints() {
+      hintActive = false;
+      const container = document.getElementById('prediction-container');
+      if (container) container.innerHTML = '';
+      clearArrows();
+      updateHintControls();
+    }
+
     function startNewGame() {
       gameId = newGameId();
       resultReported = false;
       gamePersisted = false;
       aiBudget = 400;
+      hintsLeft = HINTS_PER_GAME;
+      hintPending = false;
+      clearRevealedHints();
       const resultModal = document.getElementById('result-modal');
       if (resultModal) resultModal.style.display = 'none';
     }
@@ -2097,7 +2181,7 @@
       const fenBefore = game.toFen();
       const moveColor = game.turn;
       const uci = game.sqToAlgebraic(move.from) + game.sqToAlgebraic(move.to) +
-                  (move.promo || '');
+        (move.promo || '');
       move.san = game.moveToSan(move);
       lastMove = move;
       game.makeMove(move, true);
@@ -2109,6 +2193,7 @@
       }
 
       clearSelection();
+      clearRevealedHints();
       recordMove(fenBefore, uci, moveColor);
       renderBoard();
       reportResultIfNeeded();
@@ -2160,7 +2245,7 @@
       document.getElementById('status-white').style.color = turnW ? "var(--accent)" : "var(--text-muted)";
       document.getElementById('status-black').textContent = !turnW ? statusMsg : "Waiting";
       document.getElementById('status-black').style.color = !turnW ? "var(--accent)" : "var(--text-muted)";
-      document.getElementById('pred-perspective').textContent = `${turnW ? 'White' : 'Black'}'s Perspective`;
+      updateHintControls();
       document.getElementById('fen-field').value = game.toFen();
     }
 
@@ -2195,8 +2280,6 @@
     }
 
     // Loading states -------------------------------------------------------
-    let predictionRequestId = 0;
-
     function hideBoardLoader() {
       const loader = document.getElementById('board-loader');
       if (loader) loader.classList.add('is-hidden');
@@ -2222,40 +2305,20 @@
       `;
     }
 
-    // Move Prediction Engine (Communicates with local server if active, or offline heuristic model)
+    // Move Prediction Engine (silent: only the engine consumes these results)
     async function calculatePredictions() {
-      const requestId = ++predictionRequestId;
-      const container = document.getElementById('prediction-container');
-
-      // Show a skeleton immediately on an empty panel, otherwise only if the
-      // request is slow enough that the user would notice the delay.
-      let loadingTimer = null;
-      if (container && container.children.length === 0) {
-        renderPredictionLoading();
-        setBackendLoading(true, 'Thinking…');
-      } else {
-        loadingTimer = setTimeout(() => {
-          if (requestId !== predictionRequestId) return;
-          renderPredictionLoading();
-          setBackendLoading(true, 'Thinking…');
-        }, 140);
-      }
-
       try {
         return await runPredictionModel();
       } finally {
-        if (loadingTimer) clearTimeout(loadingTimer);
-        if (requestId === predictionRequestId) setBackendLoading(false);
+        setBackendLoading(false);
       }
     }
 
     async function runPredictionModel() {
       const fen = game.toFen();
       const legalMoves = game.getLegalMoves();
-      const container = document.getElementById('prediction-container');
 
       if (legalMoves.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); padding:12px; text-align:center">No legal moves available.</div>';
         clearArrows();
         return [];
       }
@@ -2280,11 +2343,10 @@
           document.getElementById('learn-badge').style.color =
             data.adaptive ? 'var(--success)' : 'var(--text-muted)';
           if (data && data.moves && data.moves.length > 0) {
-            renderPredictionList(data.moves);
             document.getElementById('backend-dot').style.background = 'var(--success)';
             document.getElementById('backend-text').textContent =
               data.adaptive ? 'Adaptive Model Learning' :
-              (data.model_loaded ? 'Neural Model Active' : 'Server Connected');
+                (data.model_loaded ? 'Neural Model Active' : 'Server Connected');
             return data.moves;
           }
         }
@@ -2327,19 +2389,19 @@
         prob: Math.exp(item.score * 2.5) / expSum
       }));
 
-      renderPredictionList(formatted);
       return formatted;
     }
 
-    function renderPredictionList(predList) {
+    function renderHintList(predList) {
       const container = document.getElementById('prediction-container');
       container.innerHTML = '';
 
       clearArrows();
-      if (predList.length > 0) {
-        drawPredictionArrow(predList[0].move, 'rgba(216, 180, 90, 0.85)');
-        if (predList.length > 1) drawPredictionArrow(predList[1].move, 'rgba(143, 191, 106, 0.45)');
-      }
+      predList.forEach((item, index) => {
+        drawPredictionArrow(item.move, index === 0
+          ? 'rgba(216, 180, 90, 0.85)'
+          : 'rgba(143, 191, 106, 0.45)');
+      });
 
       predList.forEach((item, index) => {
         const percent = Math.round(item.prob * 1000) / 10;
@@ -2415,9 +2477,24 @@
     }
 
     // Event Listeners
-    document.getElementById('btn-play-ai').addEventListener('click', () => {
-      const firstPred = document.querySelector('.prediction-item');
-      if (firstPred) firstPred.click();
+    document.getElementById('btn-hint').addEventListener('click', async () => {
+      if (hintPending || hintsLeft <= 0 || aiIsTurn() || game.getLegalMoves().length === 0) return;
+      hintPending = true;
+      updateHintControls();
+      renderPredictionLoading();
+      try {
+        const predictions = await calculatePredictions();
+        if (predictions.length > 0) {
+          hintsLeft -= 1;
+          hintActive = true;
+          renderHintList(predictions.slice(0, 3));
+        }
+      } catch (e) {
+        clearRevealedHints();
+      } finally {
+        hintPending = false;
+        updateHintControls();
+      }
     });
 
     document.getElementById('ai-auto').addEventListener('change', (e) => {
@@ -2446,6 +2523,7 @@
         game.unmakeMove(lastSnap);
         lastMove = game.history.length > 0 ? game.history[game.history.length - 1].move : null;
         clearSelection();
+        clearRevealedHints();
         recordUndo(lastSnap.prevTurn);
         renderBoard();
       }
@@ -2546,5 +2624,5 @@
     setTimeout(hideBoardLoader, 8000);
   </script>
 </body>
-</html>
 
+</html>

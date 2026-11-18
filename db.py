@@ -516,8 +516,22 @@ def get_leaderboard(limit=10):
 
 def get_user_rank(user_id):
     """Return the 1-based leaderboard position for a user."""
-    rows = get_leaderboard(10000)
-    for index, row in enumerate(rows, start=1):
-        if row.get("id") == user_id:
-            return index
-    return None
+    with get_connection() as (conn, cur):
+        cur.execute(
+            _sql("SELECT elo, username FROM users WHERE id = ?"),
+            (user_id,),
+        )
+        me = _row_to_dict(cur.fetchone())
+        if not me:
+            return None
+        elo = int(me.get("elo") or 1200)
+        username = me.get("username") or ""
+        cur.execute(
+            _sql(
+                "SELECT COUNT(*) AS n FROM users "
+                "WHERE elo > ? OR (elo = ? AND username < ?)"
+            ),
+            (elo, elo, username),
+        )
+        row = _row_to_dict(cur.fetchone())
+    return int(row.get("n") or 0) + 1
